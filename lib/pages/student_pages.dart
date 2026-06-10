@@ -26,10 +26,10 @@ class StudentDashboard extends StatelessWidget {
       children: [
         const PageTitle(title: 'Student Dashboard', subtitle: 'Track your capstone adviser, panel, and defense at a glance.'),
         ResponsiveGrid(columns: cols, children: [
-          StatCard(icon: Icons.description_outlined, label: 'Request Status', value: 'Submitted', tone: C.emerald, toneBg: C.emeraldSoft, delay: 0),
+          const StatCard(icon: Icons.description_outlined, label: 'Request Status', value: 'Submitted', tone: C.emerald, toneBg: C.emeraldSoft, delay: 0),
           StatCard(icon: Icons.workspace_premium_outlined, label: 'Adviser Match', value: a.adviser != null ? '${(a.adviser!.score * 100).round()}%' : '—', delay: 60),
           StatCard(icon: Icons.groups_outlined, label: 'Panel Members', value: '${a.panel.length + 1}', sub: 'incl. chairman', tone: C.sky, toneBg: C.skySoft, delay: 120),
-          StatCard(icon: Icons.event_outlined, label: 'Defense', value: 'Jun 16', sub: '9:00 AM', tone: C.emerald, toneBg: C.emeraldSoft, delay: 180),
+          const StatCard(icon: Icons.event_outlined, label: 'Defense', value: 'Jun 16', sub: '9:00 AM', tone: C.emerald, toneBg: C.emeraldSoft, delay: 180),
         ]),
         const SizedBox(height: 20),
         _wide(context)

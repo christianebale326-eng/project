@@ -49,7 +49,7 @@ class FacultyDashboard extends StatelessWidget {
         StatCard(icon: Icons.school_outlined, label: 'As Adviser', value: '$asAdviser', sub: 'max ${me.maxAdviserLoad}', delay: 0),
         StatCard(icon: Icons.groups_outlined, label: 'As Panelist', value: '$asPanel', sub: 'max ${me.maxPanelLoad}', tone: C.sky, toneBg: C.skySoft, delay: 60),
         StatCard(icon: Icons.speed_outlined, label: 'Adviser Load', value: '${((me.currentAdviserLoad / me.maxAdviserLoad) * 100).round()}%', tone: C.emerald, toneBg: C.emeraldSoft, delay: 120),
-        StatCard(icon: Icons.star_outline, label: 'Specialization', value: 'ML / DS', sub: 'Machine Learning', tone: C.orange, toneBg: C.orangeSoft, delay: 180),
+        const StatCard(icon: Icons.star_outline, label: 'Specialization', value: 'ML / DS', sub: 'Machine Learning', tone: C.orange, toneBg: C.orangeSoft, delay: 180),
       ]),
       const SizedBox(height: 20),
       AppCard(title: 'Incoming Assignments', icon: Icons.assignment_outlined, child: _AssignmentTable(touches: touches)),

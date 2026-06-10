@@ -111,6 +111,7 @@ class _TopBarState extends State<TopBar> {
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final meta = roleMeta[state.role]!;
+    final name = state.currentUser?.name ?? meta.name;
     final wide = MediaQuery.of(context).size.width >= 760;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -126,60 +127,39 @@ class _TopBarState extends State<TopBar> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Welcome back,', style: TextStyle(fontSize: 12, color: C.slate400)),
-              Text(meta.name, style: display(size: 16)),
+              Text(name, style: display(size: 16)),
             ],
           ),
           const Spacer(),
-          if (wide) _roleSwitcher(state),
-          const SizedBox(width: 10),
+          if (wide) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(color: C.slate100, borderRadius: BorderRadius.circular(99)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(meta.icon, size: 14, color: C.inkSoft),
+                  const SizedBox(width: 5),
+                  Text(meta.label,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: C.inkSoft)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+          ],
           _notifications(state),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
+          IconButton(
+            tooltip: 'Sign out',
+            onPressed: () => state.logout(),
+            icon: const Icon(Icons.logout, color: C.slate700, size: 20),
+          ),
+          const SizedBox(width: 4),
           Container(
             width: 38, height: 38,
             decoration: BoxDecoration(color: C.ink, borderRadius: BorderRadius.circular(11)),
             child: Icon(meta.icon, size: 18, color: C.amber),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _roleSwitcher(AppState state) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: C.slate100, borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final r in roleOrder)
-            InkWell(
-              borderRadius: BorderRadius.circular(9),
-              onTap: () => state.switchRole(r),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                decoration: BoxDecoration(
-                  color: state.role == r ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(9),
-                  boxShadow: state.role == r
-                      ? const [BoxShadow(color: Color(0x14000000), blurRadius: 6, offset: Offset(0, 2))]
-                      : null,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(roleMeta[r]!.icon,
-                        size: 14, color: state.role == r ? C.inkSoft : C.slate500),
-                    const SizedBox(width: 5),
-                    Text(roleMeta[r]!.label,
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: state.role == r ? C.inkSoft : C.slate500)),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
     );

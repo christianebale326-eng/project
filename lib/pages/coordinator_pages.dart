@@ -157,7 +157,7 @@ class CoordinatorLoadBalance extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 12),
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+      const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         _Legend(color: C.amber, label: 'Adviser'),
         SizedBox(width: 18),
         _Legend(color: C.sky, label: 'Panel'),

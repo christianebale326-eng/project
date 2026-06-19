@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/faculty.dart';
 import '../models/student.dart';
 import '../models/app_user.dart';
@@ -15,15 +17,8 @@ class AppState extends ChangeNotifier {
   final List<Faculty> faculty = sampleFaculty();
   final List<Student> students = sampleStudents();
 
-  // ---- Accounts -----------------------------------------------------------
-  // Seeded demo accounts so the app can be used without registering first.
-  // (Password for all demo accounts: 123456)
-  final List<AppUser> users = [
-    AppUser(id: 'u1', name: 'Maria Lopez', email: 'maria@adssu.edu', password: '123456', role: 'student'),
-    AppUser(id: 'u2', name: 'Dr. Elena Marquez', email: 'marquez@adssu.edu', password: '123456', role: 'faculty'),
-    AppUser(id: 'u3', name: 'Prof. Jeanie Delos Arcos', email: 'arcos@adssu.edu', password: '123456', role: 'coordinator'),
-    AppUser(id: 'u4', name: 'System Admin', email: 'admin@adssu.edu', password: '123456', role: 'admin'),
-  ];
+  final _auth = FirebaseAuth.instance;
+  final _db = FirebaseFirestore.instance;
 
   AppUser? currentUser;
 
@@ -32,62 +27,113 @@ class AppState extends ChangeNotifier {
     'Dr. Marquez accepted your adviser assignment.',
   ];
 
-  /// Sign in with email + password. Returns an error message, or null on success.
-  String? signIn(String email, String password) {
+  /// Sign in with email + password against Firebase Auth.
+  /// Returns an error message, or null on success.
+  Future<String?> signIn(String email, String password) async {
     final e = email.trim().toLowerCase();
     if (e.isEmpty || password.isEmpty) {
       return 'Please enter your email and password.';
     }
-    AppUser? match;
-    for (final u in users) {
-      if (u.email.toLowerCase() == e && u.password == password) {
-        match = u;
-        break;
+    try {
+      final cred = await _auth.signInWithEmailAndPassword(
+        email: e,
+        password: password,
+      );
+      final uid = cred.user!.uid;
+
+      // Read the user's profile (name + role) from Firestore.
+      final doc = await _db.collection('users').doc(uid).get();
+      final data = doc.data();
+      if (data == null) {
+        return 'Account has no profile data. Please register again.';
       }
+
+      currentUser = AppUser(
+        id: uid,
+        name: data['name'] ?? '',
+        email: e,
+        password: '',
+        role: data['role'] ?? 'student',
+      );
+      role = currentUser!.role;
+      navIndex = 0;
+      loggedIn = true;
+      notifyListeners();
+      return null;
+    } on FirebaseAuthException catch (err) {
+      return _authMessage(err);
+    } catch (err) {
+      return 'Something went wrong. Please try again.';
     }
-    if (match == null) {
-      return 'Incorrect email or password.';
-    }
-    currentUser = match;
-    role = match.role;
-    navIndex = 0;
-    loggedIn = true;
-    notifyListeners();
-    return null;
   }
 
-  /// Register a new account, then sign in. Returns an error message, or null on success.
-  String? register({
+  /// Register a new account in Firebase Auth, save profile to Firestore, then sign in.
+  /// Returns an error message, or null on success.
+  Future<String?> register({
     required String name,
     required String email,
     required String password,
     required String role,
-  }) {
+  }) async {
     final n = name.trim();
     final e = email.trim().toLowerCase();
     if (n.isEmpty) return 'Please enter your full name.';
     if (!e.contains('@') || !e.contains('.')) return 'Please enter a valid email address.';
     if (password.length < 6) return 'Password must be at least 6 characters.';
-    if (users.any((u) => u.email.toLowerCase() == e)) {
-      return 'An account with this email already exists.';
+    try {
+      final cred = await _auth.createUserWithEmailAndPassword(
+        email: e,
+        password: password,
+      );
+      final uid = cred.user!.uid;
+
+      // Save name + role to Firestore so we can read them on future logins.
+      await _db.collection('users').doc(uid).set({
+        'name': n,
+        'email': e,
+        'role': role,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      currentUser = AppUser(
+        id: uid,
+        name: n,
+        email: e,
+        password: '',
+        role: role,
+      );
+      this.role = role;
+      navIndex = 0;
+      loggedIn = true;
+      notifyListeners();
+      return null;
+    } on FirebaseAuthException catch (err) {
+      return _authMessage(err);
+    } catch (err) {
+      return 'Something went wrong. Please try again.';
     }
-    final user = AppUser(
-      id: 'u${users.length + 1}',
-      name: n,
-      email: e,
-      password: password,
-      role: role,
-    );
-    users.add(user);
-    currentUser = user;
-    this.role = role;
-    navIndex = 0;
-    loggedIn = true;
-    notifyListeners();
-    return null;
   }
 
-  void logout() {
+  /// Turn Firebase error codes into friendly messages.
+  String _authMessage(FirebaseAuthException err) {
+    switch (err.code) {
+      case 'email-already-in-use':
+        return 'An account with this email already exists.';
+      case 'invalid-email':
+        return 'Please enter a valid email address.';
+      case 'weak-password':
+        return 'Password must be at least 6 characters.';
+      case 'user-not-found':
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Incorrect email or password.';
+      default:
+        return err.message ?? 'Authentication failed.';
+    }
+  }
+
+  Future<void> logout() async {
+    await _auth.signOut();
     loggedIn = false;
     currentUser = null;
     navIndex = 0;

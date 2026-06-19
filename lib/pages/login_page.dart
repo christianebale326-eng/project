@@ -29,15 +29,15 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _submit(AppState state) {
+  void _submit(AppState state) async {
     final err = registerMode
-        ? state.register(
+        ? await state.register(
             name: name.text,
             email: email.text,
             password: password.text,
             role: selectedRole,
           )
-        : state.signIn(email.text, password.text);
+        : await state.signIn(email.text, password.text);
     if (err != null) {
       setState(() => error = err);
     }
@@ -79,10 +79,10 @@ class _LoginPageState extends State<LoginPage> {
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Demo accounts (password: 123456)',
+                  Text('Powered by Firebase',
                       style: TextStyle(color: C.amber, fontSize: 11, fontWeight: FontWeight.w700)),
                   SizedBox(height: 6),
-                  Text('maria@adssu.edu — Student\nmarquez@adssu.edu — Faculty\narcos@adssu.edu — Coordinator\nadmin@adssu.edu — Administrator',
+                  Text('Create an account to get started — your login is securely stored in the cloud.',
                       style: TextStyle(color: C.slate400, fontSize: 12, height: 1.6)),
                 ],
               ),

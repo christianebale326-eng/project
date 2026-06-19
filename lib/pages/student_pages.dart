@@ -81,6 +81,7 @@ class _CapstoneRequestFormState extends State<CapstoneRequestForm> {
   final method = TextEditingController();
   final keywords = TextEditingController();
   Assignment? result;
+  String? formError;
 
   @override
   void dispose() {
@@ -89,12 +90,28 @@ class _CapstoneRequestFormState extends State<CapstoneRequestForm> {
   }
 
   void _submit(AppState state) {
+    // Validate required fields before running the matching engine.
+    if (topic.text.trim().isEmpty) {
+      setState(() => formError = 'Please enter your proposed topic.');
+      return;
+    }
+    if (topic.text.trim().length < 10) {
+      setState(() => formError = 'Topic is too short — describe it in a full phrase for accurate matching.');
+      return;
+    }
+    if (area.text.trim().isEmpty && keywords.text.trim().isEmpty) {
+      setState(() => formError = 'Add a research area or some keywords so the engine has terms to match.');
+      return;
+    }
     final s = Student(
       id: 'temp', name: 'You', program: 'BSIT', year: '4th Year',
       topic: topic.text, researchArea: area.text, methodology: method.text,
       keywords: keywords.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
     );
-    setState(() => result = autoAssign(s, state.faculty, state.threshold));
+    setState(() {
+      formError = null;
+      result = autoAssign(s, state.faculty, state.threshold);
+    });
     state.pushNotif('Capstone Request submitted — adviser, panel & chairman auto-assigned.');
   }
 
@@ -114,6 +131,18 @@ class _CapstoneRequestFormState extends State<CapstoneRequestForm> {
           Field(label: 'Methodology', child: TextField(controller: method, decoration: capInput('e.g. Experimental / Developmental'))),
           const SizedBox(height: 14),
           Field(label: 'Keywords (comma-separated)', child: TextField(controller: keywords, decoration: capInput('deep learning, neural networks, classification'))),
+          if (formError != null) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(color: C.roseSoft, borderRadius: BorderRadius.circular(10)),
+              child: Row(children: [
+                const Icon(Icons.error_outline, color: C.rose, size: 16),
+                const SizedBox(width: 8),
+                Expanded(child: Text(formError!, style: const TextStyle(color: C.rose, fontSize: 13, fontWeight: FontWeight.w600))),
+              ]),
+            ),
+          ],
           const SizedBox(height: 18),
           SizedBox(
             height: 46,

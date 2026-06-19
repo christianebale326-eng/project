@@ -188,3 +188,61 @@ class FacultyAdvisees extends StatelessWidget {
     ]);
   }
 }
+
+class FacultyAssignments extends StatelessWidget {
+  const FacultyAssignments({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<AppState>();
+    final me = state.faculty.first;
+    final touches = _facultyTouches(state, me);
+    final adviserTouches = touches.where((t) => t.role == 'Adviser').toList();
+    final panelTouches = touches.where((t) => t.role != 'Adviser').toList();
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const PageTitle(title: 'Assignments', subtitle: 'Roles the matching engine has assigned to you, by type.'),
+      AppCard(
+        title: 'As Adviser',
+        icon: Icons.school_outlined,
+        action: Pill('${adviserTouches.length}', color: C.amberDark, bg: C.amberSoft),
+        child: adviserTouches.isEmpty
+            ? const _EmptyState(
+                icon: Icons.inbox_outlined,
+                message: 'You have no advising assignments right now.',
+              )
+            : _AssignmentTable(touches: adviserTouches),
+      ),
+      const SizedBox(height: 18),
+      AppCard(
+        title: 'As Panel / Chairman',
+        icon: Icons.groups_outlined,
+        action: Pill('${panelTouches.length}', color: C.sky, bg: C.skySoft),
+        child: panelTouches.isEmpty
+            ? const _EmptyState(
+                icon: Icons.inbox_outlined,
+                message: 'You have no panel or chairman duties right now.',
+              )
+            : _AssignmentTable(touches: panelTouches),
+      ),
+    ]);
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  final IconData icon;
+  final String message;
+  const _EmptyState({required this.icon, required this.message});
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 28),
+      child: Column(
+        children: [
+          Icon(icon, size: 30, color: C.slate400),
+          const SizedBox(height: 10),
+          Text(message, textAlign: TextAlign.center, style: const TextStyle(color: C.slate400, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+}

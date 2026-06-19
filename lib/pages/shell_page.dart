@@ -15,7 +15,7 @@ class ShellPage extends StatelessWidget {
       case 'student':
         return [const StudentDashboard(), const CapstoneRequestForm(), const StudentAssignment(), const StudentSchedule()][index];
       case 'faculty':
-        return [const FacultyDashboard(), const FacultyProfile(), const FacultyDashboard(), const FacultyAdvisees()][index];
+        return [const FacultyDashboard(), const FacultyProfile(), const FacultyAssignments(), const FacultyAdvisees()][index];
       case 'coordinator':
         return [const CoordinatorDashboard(), const CoordinatorMonitor(), const CoordinatorLoadBalance(), const CoordinatorAudit()][index];
       case 'admin':
